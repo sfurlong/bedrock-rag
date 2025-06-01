@@ -213,25 +213,39 @@ def main():
         query = "Provide a summary of consolidated statements of cash flows of Octank Financial for the fiscal years ended December 31, 2019?"
         foundation_model = "amazon.nova-micro-v1:0"
         
+
         logger.info(f"Testing knowledge base with query: {query}")
-        response = bedrock_agent_runtime_client.retrieve_and_generate(
-            input={"text": query},
-            retrieveAndGenerateConfiguration={
-                "type": "KNOWLEDGE_BASE",
-                "knowledgeBaseConfiguration": {
-                    'knowledgeBaseId': kb_id,
-                    "modelArn": f"arn:aws:bedrock:{region}::foundation-model/{foundation_model}",
-                    "retrievalConfiguration": {
-                        "vectorSearchConfiguration": {
-                            "numberOfResults": 5
+        # Loop requesting cli input until user enters 'exit'
+        while True:
+            query = input("\nEnter your query (or 'exit' to quit): ")
+            if query.lower() == 'exit':
+                break
+
+#            start_time = time()
+            try:
+                response = bedrock_agent_runtime_client.retrieve_and_generate(
+                    input={"text": query},
+                    retrieveAndGenerateConfiguration={
+                        "type": "KNOWLEDGE_BASE",
+                        "knowledgeBaseConfiguration": {
+                            'knowledgeBaseId': kb_id,
+                            "modelArn": f"arn:aws:bedrock:{region}::foundation-model/{foundation_model}",
+                            "retrievalConfiguration": {
+                                "vectorSearchConfiguration": {
+                                    "numberOfResults": 5
+                                }
+                            }
                         }
                     }
-                }
-            }
-        )
-        
-        print("\nRetrieve and Generate Response:")
-        print(response['output']['text'])
+                )
+                
+                print("\nRetrieve and Generate Response:")
+                print(response['output']['text'])
+#                print(f"\nResponse (took {time() - start_time:.2f} seconds):")
+            except Exception as e:
+                print(f"Error processing query: {str(e)}")
+                print("Try reformulating your question")
+
         
         # Test retrieval only
         logger.info("Testing retrieval only...")

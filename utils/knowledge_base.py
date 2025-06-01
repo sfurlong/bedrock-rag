@@ -86,7 +86,21 @@ class BedrockKnowledgeBase:
             suffix(str): A suffix to be used for naming resources.
         """
 
-        self._initSesssion()
+        #boto3_session = session.Session()
+        session = boto3.session.Session(profile_name='altaprise.aws')
+        self.region_name = session.region_name
+        self.iam_client = session.client('iam')
+        self.lambda_client = session.client('lambda')
+        self.account_number = session.client('sts').get_caller_identity().get('Account')
+        self.identity = session.client('sts').get_caller_identity()['Arn']
+        self.aoss_client = session.client('opensearchserverless')
+        self.neptune_client = session.client('neptune-graph')
+        self.s3_client = session.client('s3')
+        self.bedrock_agent_client = session.client('bedrock-agent')
+        credentials = session.get_credentials()
+        self.awsauth = AWSV4SignerAuth(credentials, self.region_name, 'aoss')
+    
+        # If the KB, s3 bucket, and other resources already exist, we can skip the creation step
         if not createKB:
             self.knowledge_base = existingKB
             self.data_sources = data_sources
@@ -143,26 +157,7 @@ class BedrockKnowledgeBase:
 
         self._setup_resources()
     
-    def _initSesssion(self):    
-        """
-        Initialize the boto3 session.
-        This method is used to create a boto3 session with the specified profile name.
-        """
-        #boto3_session = session.Session()
-        session = boto3.session.Session(profile_name='altaprise.aws')
-        self.region_name = session.region_name
-        self.iam_client = session.client('iam')
-        self.lambda_client = session.client('lambda')
-        self.account_number = session.client('sts').get_caller_identity().get('Account')
-        self.identity = session.client('sts').get_caller_identity()['Arn']
-        self.aoss_client = session.client('opensearchserverless')
-        self.neptune_client = session.client('neptune-graph')
-        self.s3_client = session.client('s3')
-        self.bedrock_agent_client = session.client('bedrock-agent')
-        credentials = session.get_credentials()
-        self.awsauth = AWSV4SignerAuth(credentials, self.region_name, 'aoss')
 
-        
 
     def _validate_models(self):
         if self.embedding_model not in valid_embedding_models:

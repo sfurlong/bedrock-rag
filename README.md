@@ -1,3 +1,7 @@
+# Solution Overview
+![Getting Started](images/solution-refarch.png)
+
+
 # Setup
     conda create --name bedrock-rag-venv python=3.11
     conda activate bedrock-rag-venv
